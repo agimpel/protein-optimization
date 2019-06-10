@@ -2,17 +2,13 @@ import logging
 import signal
 import sys
 import time
+import Bio.PDB
 
 # custom modules
 import constants
 import filehandler
 import fitnessfunction
-import rgncaller
-from result import result
-
-
-
-
+from proteininterpreter import proteinInterpreter
 
 class Main():
 
@@ -55,12 +51,13 @@ if __name__ == "__main__":
 
     # start main thread
     main = Main()
-    # paths = []
-    # for i in range(2):
-    #     paths.append(constants.WORKSPACE_DIR+str(i+1))
-    # rgncaller.evaluate(paths)
-    target = result(constants.WORKSPACE_DIR+"1", constants.WORKSPACE_DIR+"1.tertiary")
-    result(constants.WORKSPACE_DIR+"2", constants.WORKSPACE_DIR+"2.tertiary", target=target)
+
+    test1 = Bio.PDB.PDBParser().get_structure("1", constants.OUTPUT_DIR+"1.pdb")
+    test2 = Bio.PDB.PDBParser().get_structure("2", constants.OUTPUT_DIR+"2.pdb")
+    target = proteinInterpreter(test1)
+    sample = proteinInterpreter(test2, target=target)
+    sample._generatePlot(constants.OUTPUT_DIR+"2.pdb", constants.OUTPUT_DIR+"1.pdb")
+    # fitnessfunction.evaluate()
 
 
     # attach SIGTERM handling

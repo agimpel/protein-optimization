@@ -2,6 +2,7 @@ import os
 import stat
 import shutil
 import logging
+import pymol
 
 
 # custom modules
@@ -15,29 +16,6 @@ LOGGER = logging.getLogger('filehandler'); LOGGER.setLevel(logging.INFO)
 
 def clearWorkspace():
     _clear_dir(constants.WORKSPACE_DIR)
-
-def clearRgnInput():
-    _clear_dir(constants.RGN_INPUT_DIR)
-
-def clearRgnOutput():
-    _clear_dir(constants.RGN_OUTPUT_DIR)
-
-def copyFileToRgnInput(paths):
-    if type(paths) is not list:
-        paths = [paths]
-    return [shutil.copy(path, constants.RGN_INPUT_DIR) for path in paths]
-
-def copyFileFromRgnOutput(paths, targets):
-    if type(paths) is not list:
-        paths = [paths]
-    if type(targets) is not list:
-        targets = [targets]
-    if len(paths) != len(targets): LOGGER.warning("Number of sources and targets do not match, using first target instead."); targets = [targets[0]]
-
-    if len(targets) == 1:
-        return [shutil.copy(path, targets[0]) for path in paths]
-    else:
-        return [shutil.copy(paths[i], targets[i]) for i in range(len(paths))]
 
 def copyFileToWorkspace(paths, subdir = None):
     if type(paths) is not list:
@@ -70,6 +48,49 @@ def copyDirToArchive(paths, subdir = None):
     if subdir is not None:
         target_dir += str(subdir)+"/"
     return [shutil.copytree(path, target_dir) for path in paths]
+
+
+
+
+
+
+
+
+def saveGeneration(generation):
+    pass
+
+
+def _saveGenotype(generation_id, genotype)
+
+
+
+
+
+def _generatePlot(self, path, path2):
+
+    pymol.pymol_argv = ['pymol','-qc']
+    pymol.finish_launching()
+
+    sname = "Test"
+    sname2 = "test2"
+    pymol.cmd.load(path, sname)
+    pymol.cmd.load(path2, sname)
+    pymol.cmd.disable("all")
+    pymol.cmd.enable(sname)
+    pymol.cmd.enable(sname2)
+    pymol.cmd.png("my_image.png")
+
+    # Get out!
+    pymol.cmd.quit()
+
+
+
+
+
+
+
+
+
 
 
 # http://stackoverflow.com/questions/1889597/deleting-directory-in-python
