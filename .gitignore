@@ -1,6 +1,9 @@
 # Created by https://www.gitignore.io/api/linux,python
 # Edit at https://www.gitignore.io/?templates=linux,python
 
+rgn/*
+rgn
+
 ### Linux ###
 *~
 
