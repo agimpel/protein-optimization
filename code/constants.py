@@ -5,7 +5,7 @@ import time
 RUN_NAME = "RUN_"+time.strftime("%Y%m%d_%H%M%S")
 
 # available: directed_hausdorff, euclidean, cityblock, chebyshev, rms
-DISTANCE_MEASURE = "directed_hssausdorff"
+DISTANCE_MEASURE = "euclidean"
 
 AA_DICT = {'CYS': 'C', 'ASP': 'D', 'SER': 'S', 'GLN': 'Q', 'LYS': 'K',
            'ILE': 'I', 'PRO': 'P', 'THR': 'T', 'PHE': 'F', 'ASN': 'N', 
@@ -27,7 +27,8 @@ DIRS = [DATA_DIR, ARCHIVE_DIR, RUN_ARCHIVE_DIR, WORKSPACE_DIR]
 
 # path to individual files
 PDB_TARGET_PATH = os.path.join(DATA_DIR, "target.pdb")
-FILES = [PDB_TARGET_PATH]
+ML_MODEL_PATH = os.path.join(DATA_DIR, "openprotein.model")
+FILES = [PDB_TARGET_PATH, ML_MODEL_PATH]
 
 # check directories and files for their existence
 for a_dir in DIRS:

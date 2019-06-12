@@ -9,6 +9,8 @@ import constants
 import filehandler
 import fitnessfunction
 from proteininterpreter import proteinInterpreter
+from generation import generation
+from genotype import genotype
 
 class Main():
 
@@ -52,12 +54,22 @@ if __name__ == "__main__":
     # start main thread
     main = Main()
 
-    test1 = Bio.PDB.PDBParser().get_structure("1", constants.OUTPUT_DIR+"1.pdb")
-    test2 = Bio.PDB.PDBParser().get_structure("2", constants.OUTPUT_DIR+"2.pdb")
-    target = proteinInterpreter(test1)
-    sample = proteinInterpreter(test2, target=target)
-    sample._generatePlot(constants.OUTPUT_DIR+"2.pdb", constants.OUTPUT_DIR+"1.pdb")
-    # fitnessfunction.evaluate()
+    # test1 = Bio.PDB.PDBParser().get_structure("1", constants.OUTPUT_DIR+"1.pdb")
+    # test2 = Bio.PDB.PDBParser().get_structure("2", constants.OUTPUT_DIR+"2.pdb")
+    # target = proteinInterpreter(test1)
+    # sample = proteinInterpreter(test2, target=target)
+    # sample._generatePlot(constants.OUTPUT_DIR+"2.pdb", constants.OUTPUT_DIR+"1.pdb")
+    # fitnessfunction.evaluate("AMPAMPAMPAMPAMPAMPAMP")
+
+
+    a = genotype("AMPAMPAMPAMPAMPAMPAMP")
+    b = genotype("AMPMPAAMPAMPMPAAMPAMP")
+    gen = generation([a,b])
+    fitnessfunction.evaluate_generation(gen)
+    for i in gen:
+        print(i.FITNESS)
+
+
 
 
     # attach SIGTERM handling

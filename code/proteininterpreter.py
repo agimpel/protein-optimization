@@ -32,11 +32,11 @@ class proteinInterpreter():
     def __init__(self, structure, target = None):
         
         # set up logger for this module
-        self.LOGGER = logging.getLogger('fitness'); self.LOGGER.setLevel(logging.DEBUG)
+        self.LOGGER = logging.getLogger('proteinInterpreter'); self.LOGGER.setLevel(logging.DEBUG)
 
         self.STRUCTURE = structure
         self.NAME = structure.id
-        self.SEQUENCE = "".join([constants.AA_DICT[residue.resname] for residue in structure.get_residues()]))
+        self.SEQUENCE = "".join([constants.AA_DICT[residue.resname] for residue in structure.get_residues()])
         self._setBackboneMatrix()
 
         # define target structure
@@ -52,6 +52,8 @@ class proteinInterpreter():
     def _alignToTarget(self):
         target_atoms = self.BACKBONE_MATRIX
         sample_atoms = self.TARGET.BACKBONE_MATRIX
+
+        assert len(target_atoms) is len(sample_atoms)
 
         # align these paired atom lists
         super_imposer = Bio.PDB.Superimposer()
@@ -73,7 +75,7 @@ class proteinInterpreter():
 
 
     @property
-    def fitness(self): 
+    def FITNESS(self): 
         if constants.DISTANCE_MEASURE is "directed_hausdorff":
             return self.HAUSDORFF
         elif constants.DISTANCE_MEASURE is "euclidean":

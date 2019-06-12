@@ -60,7 +60,8 @@ def saveGeneration(generation):
     pass
 
 
-def _saveGenotype(generation_id, genotype)
+def _saveGenotype(generation_id, genotype):
+    pass
 
 
 
