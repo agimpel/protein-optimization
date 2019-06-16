@@ -3,6 +3,7 @@ import numpy as np
 import Bio.PDB
 from scipy.spatial.distance import directed_hausdorff, euclidean, cityblock, chebyshev
 from scipy.linalg import orthogonal_procrustes
+from numba import jit
 
 
 # custom modules
@@ -44,17 +45,20 @@ class proteinInterpreter():
         if target is None:
             self.is_target = True
 
-        self._alignToCenter()
+        # self._alignToCenter()
         if self.is_target is False:
-            self._alignToTarget()
+            # self._alignToTarget()
             self._determineFitness()
+        else:
+            print("".join([constants.AA_DICT[residue.resname] for residue in structure.get_residues()]))
             
 
-
+    @jit
     def _alignToCenter(self):
         translation = np.array([atom.get_coord() for atom in self.BACKBONE_MATRIX]).mean(axis=0)
         self.STRUCTURE.transform(np.identity(3), -translation)
 
+    @jit
     def _alignToTarget(self):
         target_atoms = np.array([atom.get_coord() for atom in self.BACKBONE_MATRIX])
         sample_atoms = np.array([atom.get_coord() for atom in self.TARGET.BACKBONE_MATRIX])
@@ -64,7 +68,7 @@ class proteinInterpreter():
         rotation, _ = orthogonal_procrustes(sample_atoms, target_atoms)
         self.STRUCTURE.transform(rotation, np.zeros(3))
 
-
+    @jit
     def _determineFitness(self):
         sample_coordinates = np.array([atom.get_coord() for atom in self.BACKBONE_MATRIX])
         target_coordinates = np.array([atom.get_coord() for atom in self.TARGET.BACKBONE_MATRIX])
@@ -89,7 +93,7 @@ class proteinInterpreter():
             self.LOGGER.warning("unknown fitness measure \"%s\" specified, using RMS instead." % constants.DISTANCE_MEASURE)
             return self.EUCLIDEAN
 
-
+    @jit
     def _setBackboneMatrix(self):
         atoms = []
         for residue in self.STRUCTURE.get_residues():

@@ -1,5 +1,6 @@
 import logging
 import numpy as np
+from numba import jit
 
 # custom modules
 import constants
@@ -13,15 +14,15 @@ class GA():
     LOGGER = None
 
     # Settings
-    ELITISM = 1
+    ELITISM = 2
 
-    MUTATION = False
-    MUTATION_RATE = 0.01
-    FORCE_MUTATION = 1
-
-    CROSSOVER = False
+    CROSSOVER = True
     RANDOM_CROSSOVER_CUT = True
     CROSSOVER_CUT_POSITION = None
+
+    MUTATION = True
+    MUTATION_RATE = 0.05
+    FORCE_MUTATION = 1
 
     POPULATION_SIZE = None
     GENOTYPE_LENGTH = None
@@ -36,6 +37,7 @@ class GA():
             pass
 
 
+    @jit
     def generateNewPopulation(self, old_generation):
         self.POPULATION_SIZE = len(old_generation.GENOTYPES)
         self.GENOTYPE_LENGTH = len(old_generation.GENOTYPES[0].GENOTYPE)
@@ -53,12 +55,11 @@ class GA():
 
         if self.MUTATION is True:
             self._addMutation(new_generation)
-        
-        del self.POPULATION_SIZE, self.GENOTYPE_LENGTH, old_generation
+
+        print(new_generation)
 
         new_genotypes = [genotype(new_generation[i], i) for i in range(len(new_generation))]
         return generation(new_genotypes, new_generation_id)
-
 
 
     def _addElitism(self, new_generation, old_generation):
@@ -68,7 +69,6 @@ class GA():
         for index in sorted(sorted(range(len(fitness)), key=lambda i: fitness[i])[:self.ELITISM], reverse=True):
             del old_generation.GENOTYPES[index]
         
-
     def _addCrossover(self, new_generation, old_generation):
         fitnesses = [genotype.FITNESS for genotype in old_generation]
         total_sum = sum(fitnesses)
@@ -83,10 +83,13 @@ class GA():
             random_p2 = random.uniform(0, total_sum_new)
             p2 = np.where((delta_new[:,0] <= random_p2) & (delta_new[:,1] >= random_p2))[0][0]
 
-            new_generation.extend(self._crossoverFromParents(old_generation.GENOTYPES[p1].GENOTYPE, old_generation.GENOTYPES[p2].GENOTYPE))
+            new_genotypes = self._crossoverFromParents(old_generation.GENOTYPES[p1].GENOTYPE, old_generation.GENOTYPES[p2].GENOTYPE)
+            for genotype in new_genotypes:
+                if True or genotype not in new_generation:
+                    new_generation.extend([genotype])
         del new_generation[self.POPULATION_SIZE:]
 
-
+    @jit
     def _crossoverFromParents(self, genotype1, genotype2):
         if self.RANDOM_CROSSOVER_CUT:
             cut = random.randint(1, self.GENOTYPE_LENGTH-1)
@@ -94,7 +97,7 @@ class GA():
             cut = self.CROSSOVER_CUT_POSITION
         return genotype1[:cut]+genotype2[cut:], genotype2[:cut]+genotype1[cut:]
 
-
+    @jit
     def _addMutation(self, new_generation):
         for genotype in range(self.ELITISM, self.POPULATION_SIZE):
             mutation_counter = 0

@@ -22,9 +22,7 @@ PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(PATH, "data/")
 ARCHIVE_DIR = os.path.join(DATA_DIR, "archive/")
 RUN_ARCHIVE_DIR = os.path.join(ARCHIVE_DIR, RUN_NAME + "/"); os.mkdir(RUN_ARCHIVE_DIR)
-WORKSPACE_DIR = os.path.join(DATA_DIR, "workspace/")
-OUTPUT_DIR = os.path.join(PATH, "output/")
-DIRS = [DATA_DIR, ARCHIVE_DIR, RUN_ARCHIVE_DIR, WORKSPACE_DIR]
+DIRS = [DATA_DIR, ARCHIVE_DIR, RUN_ARCHIVE_DIR]
 
 
 # path to individual files

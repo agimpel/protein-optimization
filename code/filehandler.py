@@ -7,6 +7,7 @@ from openprotein_utils import write_to_pdb
 import Bio.PDB
 from proteininterpreter import proteinInterpreter
 from fitnessfunction import TARGET_RESULT
+from numba import jit
 
 # custom modules
 import constants
@@ -16,12 +17,12 @@ import constants
 LOGGER = logging.getLogger('filehandler'); LOGGER.setLevel(logging.INFO)
 
 
-
 def prepareOptimisation():
     shutil.copyfile(constants.PDB_TARGET_PATH, constants.RUN_ARCHIVE_DIR+"target.pdb")
     write_to_pdb(TARGET_RESULT.STRUCTURE, constants.RUN_ARCHIVE_DIR+"target_aligned.pdb")
 
 
+@jit
 def saveGeneration(generation):
     generation_id = generation.ID
     generation_dir = constants.RUN_ARCHIVE_DIR+"Generation_"+str(generation_id).zfill(5)+"/"
@@ -30,6 +31,7 @@ def saveGeneration(generation):
         _saveGenotype(generation_id, generation_dir, genotype)
 
 
+@jit
 def _saveGenotype(generation_id, generation_dir, genotype):
     genotype_id = genotype.ID
     gentoype_dir = generation_dir+"Genotype_"+str(genotype_id).zfill(3)+"/"
@@ -39,6 +41,24 @@ def _saveGenotype(generation_id, generation_dir, genotype):
     _generatePlot(genotype, pdb_path, datafile_path, gentoype_dir, generation_id, genotype_id)
 
 
+@jit
+def _saveBestGenotype(generation_id, generation_dir, genotype):
+    genotype_id = genotype.ID
+    pdb_path = _generatePDB(genotype, generation_dir, generation_id, genotype_id)
+    datafile_path = _generateData(genotype, generation_dir, generation_id, genotype_id)
+    _generatePlot(genotype, pdb_path, datafile_path, generation_dir, generation_id, genotype_id)
+
+
+def saveBestGenotypeFromGeneration(generation):
+    generation_id = generation.ID
+    generation_dir = constants.RUN_ARCHIVE_DIR+"Generation_"+str(generation_id).zfill(5)+"/"
+    os.mkdir(generation_dir)
+    genotype_fitness = [genotype.FITNESS for genotype in generation]
+    best_genotype = generation.GENOTYPES[sorted(range(len(genotype_fitness)), key=lambda i: genotype_fitness[i], reverse=True)[0]]
+    _saveBestGenotype(generation_id, generation_dir, best_genotype)
+
+
+@jit
 def _generatePDB(genotype, gentoype_dir, generation_id, genotype_id):
     pdb_path = gentoype_dir+constants.RUN_NAME+"_"+str(generation_id).zfill(5)+"_"+str(genotype_id).zfill(3)+".pdb"
     write_to_pdb(genotype._result.STRUCTURE, pdb_path)

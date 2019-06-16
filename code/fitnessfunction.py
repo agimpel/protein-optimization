@@ -1,5 +1,6 @@
 import logging
 import torch
+from numba import jit
 
 # custom modules
 import constants
@@ -18,19 +19,18 @@ LOGGER = logging.getLogger('fitness'); LOGGER.setLevel(logging.DEBUG)
 TARGET_RESULT = proteinInterpreter(Bio.PDB.PDBParser().get_structure("TARGET", constants.PDB_TARGET_PATH))
 PREDICTION_MODEL = torch.load(constants.ML_MODEL_PATH)
 
-def evaluate_sequence(sequences):
-    if type(sequences) is not list:
-        sequences = [sequences]
-    sequences_encoded = [torch.LongTensor(encode_primary_string(sequence)) for sequence in sequences]
-    predicted_dihedral_angles, _, _ = PREDICTION_MODEL(sequences_encoded)
-    predicted_structures = [get_structure_from_angles(sequences_encoded[i], predicted_dihedral_angles[:,i]) for i in range(len(sequences_encoded))]
-    return [proteinInterpreter(structure, target=TARGET_RESULT) for structure in predicted_structures]
+def evaluate_sequence(sequence):
+    sequence = [sequence]
+    sequence_encoded = list(torch.LongTensor(encode_primary_string(aa)) for aa in sequence)
+    predicted_dihedral_angles, _, _ = PREDICTION_MODEL(sequence_encoded)
+    return proteinInterpreter(get_structure_from_angles(sequence_encoded[0], predicted_dihedral_angles[:,0]), target=TARGET_RESULT)
 
 
+@jit
 def evaluate_generation(generation):
     genotypes = generation.GENOTYPES
     sequences = [genotype.GENOTYPE for genotype in genotypes]
-    results = evaluate_sequence(sequences)
+    results = [evaluate_sequence(sequence) for sequence in sequences]
 
     for genotype, result in zip(genotypes, results):
         genotype.RESULT = result
