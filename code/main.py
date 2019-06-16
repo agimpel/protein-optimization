@@ -3,6 +3,7 @@ import signal
 import sys
 import time
 import Bio.PDB
+import random
 
 # custom modules
 import constants
@@ -11,37 +12,49 @@ import fitnessfunction
 from proteininterpreter import proteinInterpreter
 from generation import generation
 from genotype import genotype
-
-class Main():
-
-    # __init__
-    # INFO:     Sets up logging and threads of this program.
-    # ARGS:     -
-    # RETURNS:  -
-    def __init__(self):
-
-        # set-up of general logging
-        logging.basicConfig(level=logging.INFO,
-                            format='%(asctime)s\t%(levelname)s\t[%(name)s: %(funcName)s]\t%(message)s',
-                            datefmt='%Y-%m-%d %H:%M:%S',
-                            handlers=[logging.FileHandler(constants.RUN_ARCHIVE_DIR + "log"), logging.StreamHandler()])
-
-        # setting of global minimum logging level
-        logging.disable(logging.NOTSET)
-
-        # start services
-        logging.info('starting threads')
+from genetic_algorithm import GA
 
 
-        # set-up for logging of work. Level options: DEBUG, INFO, WARNING, ERROR, CRITICAL
-        self.loglevel = logging.INFO
-        self.logtitle = 'main'
-        self.logger = logging.getLogger(self.logtitle)
-        self.logger.setLevel(self.loglevel)
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s\t%(levelname)s\t[%(name)s: %(funcName)s]\t%(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S',
+                    handlers=[logging.FileHandler(constants.RUN_ARCHIVE_DIR + "log"), 
+                    logging.StreamHandler()])
 
-    def stop(self):
-        self.logger.info("Stopping main thread")
-        sys.exit()
+# setting of global minimum logging level
+logging.disable(logging.NOTSET)
+
+# set up logger for this module
+LOGGER = logging.getLogger('main'); LOGGER.setLevel(logging.DEBUG)
+
+GENETIC_ALGORITHM = GA()
+MAX_GENERATIONS = 999
+POPULATION_SIZE = 4
+GENOTYPE_LENGTH = 21
+
+
+
+
+def main(initial_population):
+    population = initial_population
+    for g in range(MAX_GENERATIONS):
+        print("Generation "+str(g)+" started.")
+
+        fitnessfunction.evaluate_generation(population)
+
+        result = list()
+        for phenotype in population:
+            result.append(phenotype.FITNESS)
+        print("Best phenotype has fitness: "+str(max(result)))
+
+        filehandler.saveGeneration(population)
+        population = GENETIC_ALGORITHM.generateNewPopulation(population)
+
+
+
+def initialisePopulation():
+    genotypes = [genotype("".join(random.choices(constants.GENE_LIST, k=GENOTYPE_LENGTH)), i) for i in range(POPULATION_SIZE)]
+    return generation(genotypes, 0)
 
 
 
@@ -51,26 +64,11 @@ class Main():
 # RETURNS:  /
 if __name__ == "__main__":
 
-    # start main thread
-    main = Main()
-
-    # test1 = Bio.PDB.PDBParser().get_structure("1", constants.OUTPUT_DIR+"1.pdb")
-    # test2 = Bio.PDB.PDBParser().get_structure("2", constants.OUTPUT_DIR+"2.pdb")
-    # target = proteinInterpreter(test1)
-    # sample = proteinInterpreter(test2, target=target)
-    # sample._generatePlot(constants.OUTPUT_DIR+"2.pdb", constants.OUTPUT_DIR+"1.pdb")
-    # fitnessfunction.evaluate("AMPAMPAMPAMPAMPAMPAMP")
-
-
-    a = genotype("AMPAMPAMPAMPAMPAMPAMP")
-    b = genotype("AMPMPAAMPAMPMPAAMPAMP")
-    gen = generation([a,b])
-    fitnessfunction.evaluate_generation(gen)
-    for i in gen:
-        print(i.FITNESS)
-
-
-
-
-    # attach SIGTERM handling
-    signal.signal(signal.SIGTERM, main.stop())
+    filehandler.prepareOptimisation()
+    initial_population = initialisePopulation()
+    
+    main(initial_population)
+    # while True:
+    #     fitnessfunction.evaluate_generation(initial_population)
+    #     print(initial_population.GENOTYPES[0].FITNESS)
+    #     time.sleep(1)

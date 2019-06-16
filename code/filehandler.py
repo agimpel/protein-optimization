@@ -3,7 +3,10 @@ import stat
 import shutil
 import logging
 import pymol
-
+from openprotein_utils import write_to_pdb
+import Bio.PDB
+from proteininterpreter import proteinInterpreter
+from fitnessfunction import TARGET_RESULT
 
 # custom modules
 import constants
@@ -14,121 +17,64 @@ LOGGER = logging.getLogger('filehandler'); LOGGER.setLevel(logging.INFO)
 
 
 
-def clearWorkspace():
-    _clear_dir(constants.WORKSPACE_DIR)
-
-def copyFileToWorkspace(paths, subdir = None):
-    if type(paths) is not list:
-        paths = [paths]
-    target_dir = constants.WORKSPACE_DIR
-    if subdir is not None:
-        target_dir += str(subdir)+"/"
-    return [shutil.copy(path, target_dir) for path in paths]
-
-def copyDirToWorkspace(paths, subdir = None):
-    if type(paths) is not list:
-        paths = [paths]
-    target_dir = constants.WORKSPACE_DIR
-    if subdir is not None:
-        target_dir += str(subdir)+"/"
-    return [shutil.copytree(path, target_dir) for path in paths]
-
-def copyFileToArchive(paths, subdir = None):
-    if type(paths) is not list:
-        paths = [paths]
-    target_dir = constants.ARCHIVE_DIR
-    if subdir is not None:
-        target_dir += str(subdir)+"/"
-    return [shutil.copy(path, target_dir) for path in paths]
-
-def copyDirToArchive(paths, subdir = None):
-    if type(paths) is not list:
-        paths = [paths]
-    target_dir = constants.ARCHIVE_DIR
-    if subdir is not None:
-        target_dir += str(subdir)+"/"
-    return [shutil.copytree(path, target_dir) for path in paths]
-
-
-
-
-
-
+def prepareOptimisation():
+    shutil.copyfile(constants.PDB_TARGET_PATH, constants.RUN_ARCHIVE_DIR+"target.pdb")
+    write_to_pdb(TARGET_RESULT.STRUCTURE, constants.RUN_ARCHIVE_DIR+"target_aligned.pdb")
 
 
 def saveGeneration(generation):
+    generation_id = generation.ID
+    generation_dir = constants.RUN_ARCHIVE_DIR+"Generation_"+str(generation_id).zfill(5)+"/"
+    os.mkdir(generation_dir)
+    for genotype in generation:
+        _saveGenotype(generation_id, generation_dir, genotype)
+
+
+def _saveGenotype(generation_id, generation_dir, genotype):
+    genotype_id = genotype.ID
+    gentoype_dir = generation_dir+"Genotype_"+str(genotype_id).zfill(3)+"/"
+    os.mkdir(gentoype_dir)
+    pdb_path = _generatePDB(genotype, gentoype_dir, generation_id, genotype_id)
+    datafile_path = _generateData(genotype, gentoype_dir, generation_id, genotype_id)
+    _generatePlot(genotype, pdb_path, datafile_path, gentoype_dir, generation_id, genotype_id)
+
+
+def _generatePDB(genotype, gentoype_dir, generation_id, genotype_id):
+    pdb_path = gentoype_dir+constants.RUN_NAME+"_"+str(generation_id).zfill(5)+"_"+str(genotype_id).zfill(3)+".pdb"
+    write_to_pdb(genotype._result.STRUCTURE, pdb_path)
+    return pdb_path
+
+
+def _generateData(genotype, gentoype_dir, generation_id, genotype_id):
+    datafile_path = gentoype_dir+constants.RUN_NAME+"_"+str(generation_id).zfill(5)+"_"+str(genotype_id).zfill(3)+".data"
+    with open(datafile_path, "w+") as datafile:
+        datafile.write("run_name="+str(constants.RUN_NAME)+"\n")
+        datafile.write("generation_id="+str(generation_id)+"\n")
+        datafile.write("genotype_id="+str(genotype_id)+"\n")
+        datafile.write("sequence="+str(genotype._result.SEQUENCE)+"\n")
+        datafile.write("target_sequence="+str(genotype._result.TARGET.SEQUENCE)+"\n")
+        datafile.write("fitness="+str(genotype.FITNESS)+"\n")
+        datafile.write("fitness_hausdorff="+str(genotype._result.HAUSDORFF)+"\n")
+        datafile.write("fitness_euclidean="+str(genotype._result.EUCLIDEAN)+"\n")
+        datafile.write("fitness_cityblock="+str(genotype._result.CITYBLOCK)+"\n")
+        datafile.write("fitness_chebyshev="+str(genotype._result.CHEBYSHEV)+"\n")
+        datafile.close()
+    return datafile_path
+
+
+def _generatePlot(genotype, pdb_path, datafile_path, gentoype_dir, generation_id, genotype_id):
     pass
+    # pymol.pymol_argv = ['pymol','-qc']
+    # pymol.finish_launching()
 
+    # sname = "Test"
+    # sname2 = "test2"
+    # pymol.cmd.load(path, sname)
+    # pymol.cmd.load(path2, sname)
+    # pymol.cmd.disable("all")
+    # pymol.cmd.enable(sname)
+    # pymol.cmd.enable(sname2)
+    # pymol.cmd.png("my_image.png")
 
-def _saveGenotype(generation_id, genotype):
-    pass
-
-
-
-
-
-def _generatePlot(self, path, path2):
-
-    pymol.pymol_argv = ['pymol','-qc']
-    pymol.finish_launching()
-
-    sname = "Test"
-    sname2 = "test2"
-    pymol.cmd.load(path, sname)
-    pymol.cmd.load(path2, sname)
-    pymol.cmd.disable("all")
-    pymol.cmd.enable(sname)
-    pymol.cmd.enable(sname2)
-    pymol.cmd.png("my_image.png")
-
-    # Get out!
-    pymol.cmd.quit()
-
-
-
-
-
-
-
-
-
-
-
-# http://stackoverflow.com/questions/1889597/deleting-directory-in-python
-def _remove_readonly(fn, path_, excinfo):
-    # Handle read-only files and directories
-    if fn is os.rmdir:
-        os.chmod(path_, stat.S_IWRITE)
-        os.rmdir(path_)
-    elif fn is os.remove:
-        os.lchmod(path_, stat.S_IWRITE)
-        os.remove(path_)
-
-def _force_remove_file_or_symlink(path_):
-    try:
-        os.remove(path_)
-    except OSError:
-        os.lchmod(path_, stat.S_IWRITE)
-        os.remove(path_)
-
-def _is_regular_dir(path_):
-    try:
-        mode = os.lstat(path_).st_mode
-    except os.error:
-        mode = 0
-    return stat.S_ISDIR(mode)
-
-def _clear_dir(path_):
-    if _is_regular_dir(path_):
-        # Given path is a directory, clear its content
-        for name in os.listdir(path_):
-            fullpath = os.path.join(path_, name)
-            if _is_regular_dir(fullpath):
-                shutil.rmtree(fullpath, onerror=_remove_readonly)
-            else:
-                _force_remove_file_or_symlink(fullpath)
-    else:
-        # Given path is a file or a symlink.
-        # Raise an exception here to avoid accidentally clearing the content
-        # of a symbolic linked directory.
-        raise OSError("Cannot call clear_dir() on a symbolic link")
+    # # Get out!
+    # pymol.cmd.quit()

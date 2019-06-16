@@ -2,6 +2,7 @@ import logging
 import numpy as np
 import Bio.PDB
 from scipy.spatial.distance import directed_hausdorff, euclidean, cityblock, chebyshev
+from scipy.linalg import orthogonal_procrustes
 
 
 # custom modules
@@ -22,7 +23,6 @@ class proteinInterpreter():
     NAME = None
     SEQUENCE = None
 
-    ALIGNMENT_RMS = None
     HAUSDORFF = None
     EUCLIDEAN = None
     CITYBLOCK = None
@@ -44,24 +44,25 @@ class proteinInterpreter():
         if target is None:
             self.is_target = True
 
+        self._alignToCenter()
         if self.is_target is False:
             self._alignToTarget()
             self._determineFitness()
+            
 
+
+    def _alignToCenter(self):
+        translation = np.array([atom.get_coord() for atom in self.BACKBONE_MATRIX]).mean(axis=0)
+        self.STRUCTURE.transform(np.identity(3), -translation)
 
     def _alignToTarget(self):
-        target_atoms = self.BACKBONE_MATRIX
-        sample_atoms = self.TARGET.BACKBONE_MATRIX
+        target_atoms = np.array([atom.get_coord() for atom in self.BACKBONE_MATRIX])
+        sample_atoms = np.array([atom.get_coord() for atom in self.TARGET.BACKBONE_MATRIX])
 
         assert len(target_atoms) is len(sample_atoms)
 
-        # align these paired atom lists
-        super_imposer = Bio.PDB.Superimposer()
-        super_imposer.set_atoms(target_atoms, sample_atoms)
-        super_imposer.apply(self.STRUCTURE.get_atoms())
-        self.ALIGNMENT_RMS = super_imposer.rms
-
-        self.LOGGER.info("RMS(model %s, model %s) = %0.2f" % (self.TARGET.STRUCTURE.id, self.STRUCTURE.id, super_imposer.rms))
+        rotation, _ = orthogonal_procrustes(sample_atoms, target_atoms)
+        self.STRUCTURE.transform(rotation, np.zeros(3))
 
 
     def _determineFitness(self):
@@ -84,11 +85,9 @@ class proteinInterpreter():
             return self.CITYBLOCK
         elif constants.DISTANCE_MEASURE is "chebyshev":
             return self.CHEBYSHEV
-        elif constants.DISTANCE_MEASURE is "rms":
-            return self.ALIGNMENT_RMS
         else:
             self.LOGGER.warning("unknown fitness measure \"%s\" specified, using RMS instead." % constants.DISTANCE_MEASURE)
-            return self.ALIGNMENT_RMS
+            return self.EUCLIDEAN
 
 
     def _setBackboneMatrix(self):

@@ -4,13 +4,15 @@ import time
 
 RUN_NAME = "RUN_"+time.strftime("%Y%m%d_%H%M%S")
 
-# available: directed_hausdorff, euclidean, cityblock, chebyshev, rms
+# available: directed_hausdorff, euclidean, cityblock, chebyshev
 DISTANCE_MEASURE = "euclidean"
 
 AA_DICT = {'CYS': 'C', 'ASP': 'D', 'SER': 'S', 'GLN': 'Q', 'LYS': 'K',
            'ILE': 'I', 'PRO': 'P', 'THR': 'T', 'PHE': 'F', 'ASN': 'N', 
            'GLY': 'G', 'HIS': 'H', 'LEU': 'L', 'ARG': 'R', 'TRP': 'W', 
            'ALA': 'A', 'VAL':'V', 'GLU': 'E', 'TYR': 'Y', 'MET': 'M'}
+
+GENE_LIST = ['C', 'D', 'S', 'Q', 'K', 'I', 'P', 'T', 'F', 'N', 'G', 'H', 'L', 'R', 'W', 'A', 'V', 'E', 'Y', 'M']
 
 # main directory path
 PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

@@ -29,7 +29,6 @@ def evaluate_sequence(sequences):
 
 def evaluate_generation(generation):
     genotypes = generation.GENOTYPES
-    print(genotypes)
     sequences = [genotype.GENOTYPE for genotype in genotypes]
     results = evaluate_sequence(sequences)
 

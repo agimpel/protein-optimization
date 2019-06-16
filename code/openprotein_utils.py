@@ -45,7 +45,7 @@ def get_structure_from_angles(aa_list_encoded, angles):
 def write_to_pdb(structure, path):
     out = Bio.PDB.PDBIO()
     out.set_structure(structure)
-    out.save(path + str(structure.id) + ".pdb")
+    out.save(path)
 
 def get_backbone_positions_from_angular_prediction(angular_emissions, batch_sizes, use_gpu):
     # angular_emissions -1 x minibatch size x 3 (omega, phi, psi)
