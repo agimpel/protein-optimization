@@ -1,4 +1,5 @@
 import logging
+import math
 
 # custom modules
 import constants
@@ -29,3 +30,4 @@ class genotype():
     def RESULT(self, RESULT): 
         self._result = RESULT
         self.FITNESS = 1/(RESULT.FITNESS+1)
+        # self.FITNESS = 1/(math.sqrt(RESULT.FITNESS)+1)

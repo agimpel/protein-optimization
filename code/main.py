@@ -29,24 +29,28 @@ logging.disable(logging.NOTSET)
 LOGGER = logging.getLogger('main'); LOGGER.setLevel(logging.DEBUG)
 
 GENETIC_ALGORITHM = GA()
-MAX_GENERATIONS = 999
-POPULATION_SIZE = 16
+MAX_GENERATIONS = 9999999
+POPULATION_SIZE = 24
 GENOTYPE_LENGTH = 6
 
 @jit
 def main(initial_population):
     population = initial_population
+    best_result = 0
+
     for g in range(MAX_GENERATIONS):
-        print("Generation "+str(g)+" started.")
 
         fitnessfunction.evaluate_generation(population)
 
         result = list()
         for phenotype in population:
             result.append(phenotype.FITNESS)
-        print("Best phenotype has fitness: "+str(max(result)))
-
-        filehandler.saveBestGenotypeFromGeneration(population)
+        best_fitness = max(result)
+        if best_fitness > best_result:
+            best_result = best_fitness
+            filehandler.saveBestGenotypeFromGeneration(population)
+        LOGGER.info("Generation "+str(g)+": fitness: "+str(best_fitness))
+        
         population = GENETIC_ALGORITHM.generateNewPopulation(population)
 
 

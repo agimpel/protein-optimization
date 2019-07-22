@@ -45,9 +45,9 @@ class proteinInterpreter():
         if target is None:
             self.is_target = True
 
-        # self._alignToCenter()
+        self._alignToCenter()
         if self.is_target is False:
-            # self._alignToTarget()
+            self._alignToTarget()
             self._determineFitness()
         else:
             print("".join([constants.AA_DICT[residue.resname] for residue in structure.get_residues()]))

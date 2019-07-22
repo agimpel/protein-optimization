@@ -14,15 +14,19 @@ class GA():
     LOGGER = None
 
     # Settings
-    ELITISM = 2
+    ELITISM = 1
 
     CROSSOVER = True
+    CROSSOVER_RATE = 0.85
     RANDOM_CROSSOVER_CUT = True
     CROSSOVER_CUT_POSITION = None
 
     MUTATION = True
-    MUTATION_RATE = 0.05
-    FORCE_MUTATION = 1
+    MUTATION_RATE = 0.2
+    FORCE_MUTATION = False
+
+    RESTART = True
+    RESTART_GENERATIONS = 50
 
     POPULATION_SIZE = None
     GENOTYPE_LENGTH = None
@@ -48,15 +52,17 @@ class GA():
         if self.ELITISM is not 0:
             self._addElitism(new_generation, old_generation)
 
-        if self.CROSSOVER is True:
-            self._addCrossover(new_generation, old_generation)
+        if self.RESTART is True and new_generation_id%self.RESTART_GENERATIONS is 0:
+            random_genotypes = ["".join(random.choices(constants.GENE_LIST, k=self.GENOTYPE_LENGTH)) for _ in range(self.POPULATION_SIZE-self.ELITISM)]
+            new_generation.extend(random_genotypes)
         else:
-            new_generation[self.ELITISM:] = [genotype.GENOTYPE for genotype in old_generation] 
+            if self.CROSSOVER is True:
+                self._addCrossover(new_generation, old_generation)
+            else:
+                new_generation[self.ELITISM:] = [genotype.GENOTYPE for genotype in old_generation] 
 
-        if self.MUTATION is True:
-            self._addMutation(new_generation)
-
-        print(new_generation)
+            if self.MUTATION is True:
+                self._addMutation(new_generation)
 
         new_genotypes = [genotype(new_generation[i], i) for i in range(len(new_generation))]
         return generation(new_genotypes, new_generation_id)
@@ -83,9 +89,12 @@ class GA():
             random_p2 = random.uniform(0, total_sum_new)
             p2 = np.where((delta_new[:,0] <= random_p2) & (delta_new[:,1] >= random_p2))[0][0]
 
-            new_genotypes = self._crossoverFromParents(old_generation.GENOTYPES[p1].GENOTYPE, old_generation.GENOTYPES[p2].GENOTYPE)
+            if random.random() < self.CROSSOVER_RATE:
+                new_genotypes = self._crossoverFromParents(old_generation.GENOTYPES[p1].GENOTYPE, old_generation.GENOTYPES[p2].GENOTYPE)
+            else:
+                new_genotypes = old_generation.GENOTYPES[p1].GENOTYPE, old_generation.GENOTYPES[p2].GENOTYPE
             for genotype in new_genotypes:
-                if True or genotype not in new_generation:
+                if genotype not in new_generation[self.ELITISM:]:
                     new_generation.extend([genotype])
         del new_generation[self.POPULATION_SIZE:]
 
