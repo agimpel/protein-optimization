@@ -63,7 +63,7 @@ class proteinInterpreter():
         target_atoms = np.array([atom.get_coord() for atom in self.BACKBONE_MATRIX])
         sample_atoms = np.array([atom.get_coord() for atom in self.TARGET.BACKBONE_MATRIX])
 
-        assert len(target_atoms) is len(sample_atoms)
+        assert len(target_atoms) == len(sample_atoms)
 
         rotation, _ = orthogonal_procrustes(sample_atoms, target_atoms)
         self.STRUCTURE.transform(rotation, np.zeros(3))

@@ -19,8 +19,11 @@ LOGGER = logging.getLogger('fitness'); LOGGER.setLevel(logging.DEBUG)
 TARGET_RESULT = proteinInterpreter(Bio.PDB.PDBParser().get_structure("TARGET", constants.PDB_TARGET_PATH))
 PREDICTION_MODEL = torch.load(constants.ML_MODEL_PATH)
 
+SEQUENCE_PREFIX = "EENTEEKIGDDKINATYMWISKDKKYLTIEFQYYST"
+SEQUENCE_SUFFIX = "KHFLNLVINNKDNTDDEYINLEFRHNSERDSPDHLG"
+
 def evaluate_sequence(sequence):
-    sequence = [sequence]
+    sequence = [SEQUENCE_PREFIX + sequence + SEQUENCE_SUFFIX]
     sequence_encoded = list(torch.LongTensor(encode_primary_string(aa)) for aa in sequence)
     predicted_dihedral_angles, _, _ = PREDICTION_MODEL(sequence_encoded)
     return proteinInterpreter(get_structure_from_angles(sequence_encoded[0], predicted_dihedral_angles[:,0]), target=TARGET_RESULT)

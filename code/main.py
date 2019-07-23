@@ -31,7 +31,7 @@ LOGGER = logging.getLogger('main'); LOGGER.setLevel(logging.DEBUG)
 GENETIC_ALGORITHM = GA()
 MAX_GENERATIONS = 9999999
 POPULATION_SIZE = 24
-GENOTYPE_LENGTH = 6
+GENOTYPE_LENGTH = 5
 
 @jit
 def main(initial_population):
